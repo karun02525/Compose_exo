@@ -1,4 +1,4 @@
-package dazn.com.ui.screen.player
+package dazn.com.ui.screen.video_player
 
 import android.content.Context
 import android.content.Intent

@@ -1,4 +1,4 @@
-package dazn.com.ui.screen.home
+package dazn.com.ui.screen.video_list
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -19,14 +19,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dazn.com.R
 import dazn.com.domain.model.PlayListModel
-import dazn.com.ui.screen.main.MainViewModel
 
 
 @Composable
 fun ListScreen(clickedItem: (Int) -> Unit) {
-    val mainViewModel = hiltViewModel<MainViewModel>()
-    val videos = remember { mainViewModel.videoList }
-    videos.value?.let {
+    val videoListViewModel = hiltViewModel<VideoListViewModel>()
+    val videos = remember { videoListViewModel.videoList }
+    videos.value.data?.let {
         Scaffold { innerPadding ->
             LazyColumn(contentPadding = innerPadding) {
                 item {

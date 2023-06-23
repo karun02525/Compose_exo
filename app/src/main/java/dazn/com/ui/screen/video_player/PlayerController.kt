@@ -1,4 +1,4 @@
-package dazn.com.ui.screen.player
+package dazn.com.ui.screen.video_player
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
@@ -18,7 +18,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import dazn.com.R
-import dazn.com.ui.theme.Purple200
 import dazn.com.ui.theme.SLIDER_COLOR
 import dazn.com.utils.formatMinSec
 
