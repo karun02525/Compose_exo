@@ -14,3 +14,5 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Dazn Playback App"
 include ':app'
+include ':network'
+include ':analytics'

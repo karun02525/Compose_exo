@@ -18,7 +18,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dazn.com.R
-import dazn.com.data.model.Video
+import dazn.com.domain.model.PlayListModel
 import dazn.com.ui.screen.main.MainViewModel
 
 
@@ -47,7 +47,7 @@ fun ListScreen(clickedItem: (Int) -> Unit) {
 }
 
 @Composable
-fun VideoListItem(data: Video) {
+fun VideoListItem(data: PlayListModel) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,

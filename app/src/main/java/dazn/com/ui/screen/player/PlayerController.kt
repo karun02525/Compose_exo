@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import dazn.com.R
 import dazn.com.ui.theme.Purple200
+import dazn.com.ui.theme.SLIDER_COLOR
 import dazn.com.utils.formatMinSec
 
 
@@ -200,6 +201,7 @@ private fun SeekbarControls(
 
     Column(modifier = modifier.padding(bottom = 32.dp)) {
         Box(modifier = Modifier.fillMaxWidth()) {
+
             Slider(
                 value = buffer.toFloat(),
                 enabled = false,
@@ -209,28 +211,26 @@ private fun SeekbarControls(
                     disabledThumbColor = Color.Transparent, disabledActiveTrackColor = Color.Gray
                 )
             )
-
             Slider(
                 modifier = Modifier.fillMaxWidth(),
                 value = videoTime.toFloat(),
                 onValueChange = onSeekChanged,
                 valueRange = 0f..duration.toFloat(),
                 colors = SliderDefaults.colors(
-                    thumbColor = Purple200, activeTickColor = Purple200
+                    thumbColor = SLIDER_COLOR, activeTickColor = Color.Magenta
                 )
             )
         }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 16.dp),
+                .padding(top = 8.dp),
             horizontalArrangement = Arrangement.End
         ) {
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 text = duration.formatMinSec(),
-                color = Purple200
+                color = Color.Yellow
             )
         }
 

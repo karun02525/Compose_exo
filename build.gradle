@@ -2,6 +2,18 @@ buildscript {
     ext {
         compose_ui_version = '1.2.0'
         navigation_compose =  '2.5.3'
+        gsonVersion = '2.8.2'
+        lifecycleVersion = '2.2.0'
+        materialVersion = '1.2.0'
+        retrofitVersion = '2.9.0'
+        okhttpLoggingVersion = '4.7.2'
+        navigationVersion = '2.4.2'
+        truthVersion = '0.42'
+        coroutinesVersion = "1.4.2"
+
+        hiltAndroidVersion='2.46.1'
+        hiltAndroidCompilerVersion='2.44.2'
+        hiltCompilerVersion='1.0.0'
     }
 
 }// Top-level build file where you can add configuration options common to all sub-projects/modules.

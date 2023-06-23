@@ -5,33 +5,35 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dazn.com.data.VideoRepository
-import dazn.com.data.model.Video
-import kotlinx.coroutines.delay
+import dazn.com.domain.model.PlayListModel
+import dazn.com.domain.usecase.VideoPlayerUseCase
+import dazn.com.network.common.onFailure
+import dazn.com.network.common.onSuccess
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(private val videoRepository: VideoRepository) : ViewModel() {
+class MainViewModel @Inject constructor(
+    private val useCase: VideoPlayerUseCase) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(true)
-
     val isLoading get() = _isLoading.asStateFlow()
-
-    val videoList: MutableState<List<Video>?> = mutableStateOf(null)
-
-    //to check internet connection
-    val isInternetAvailable = mutableStateOf(false)
+    val videoList: MutableState<List<PlayListModel>?> = mutableStateOf(null)
 
     init {
         viewModelScope.launch {
-            //load video list from json file in assets
-            videoList.value = videoRepository.loadVideos()
-            //delay to show default splash screen
-            delay(500)
-            _isLoading.value = false
+           useCase.getVideoPlayer().onSuccess {
+               _isLoading.value = false
+               withContext(Dispatchers.Main) {
+                   videoList.value = it
+               }
+           }.onFailure {
+               _isLoading.value = false
+           }
         }
     }
 }

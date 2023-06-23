@@ -2,41 +2,35 @@ package dazn.com.ui.screen.player
 
 import android.util.Log
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dazn.com.data.VideoRepository
-import dazn.com.data.model.Video
-import dazn.com.utils.AnalyticsEventLogger
+import dazn.com.analytics.Analytic.Event.VIDEO_PLAY
+import dazn.com.analytics.Analytic.Key.PLAY_VIDEO_NAME
+import dazn.com.analytics.service.AnalyticService
+import dazn.com.domain.model.PlayListModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class VideoViewModel @Inject constructor(
-    private val videoRepository: VideoRepository,
-    private val analyticsEventLogger: AnalyticsEventLogger
-    ) : ViewModel() {
+    val analyticService: AnalyticService) : ViewModel() {
 
     val pauseCount = mutableStateOf(0)
     val forwardCount = mutableStateOf(0)
     val backwardCount = mutableStateOf(0)
 
-    private val videoList: MutableState<List<Video>?> = mutableStateOf(null)
+    private val videoList: MutableState<List<PlayListModel>?> = mutableStateOf(null)
 
     var videoIndex = mutableStateOf(0)
 
-    var currentVideoToPlay: Video? =null
+    var currentVideoToPlay: PlayListModel? =null
 
 
-    init {
-        viewModelScope.launch {
-            videoList.value = videoRepository.loadVideos()
-        }
-    }
 
-    fun initVideo(index: Int) = viewModelScope.launch {
+    fun initVideo(data:List<PlayListModel>,index: Int) = viewModelScope.launch {
+        videoList.value = data
         val videos = videoList.value
         if (videos.isNullOrEmpty()) {
             return@launch
@@ -96,22 +90,14 @@ class VideoViewModel @Inject constructor(
 
     private fun logVideoPlayEvents() {
         currentVideoToPlay?.let {
-            logVideoPlayEvent(it.name)
-            logActionEvent(AnalyticsEventLogger.ACTION_PLAY_VIDEO)
+            val params = hashMapOf(PLAY_VIDEO_NAME to it.name)
+            analyticService.trackEvent(VIDEO_PLAY,params)
         }
     }
 
     fun isNextVideoAvailable(): Boolean = videoIndex.value < ((videoList.value?.size ?: 0) - 1)
 
     fun isPreviousVideoAvailable(): Boolean = videoIndex.value > 0
-
-    fun logActionEvent(action: String) = viewModelScope.launch {
-        analyticsEventLogger.logVideoAction(action)
-    }
-
-    private fun logVideoPlayEvent(name: String) = viewModelScope.launch {
-        analyticsEventLogger.logVideoSelectEvent(name)
-    }
 
 
 }

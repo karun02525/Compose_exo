@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Column
 import dagger.hilt.android.AndroidEntryPoint
+import dazn.com.domain.model.PlayListModel
 
 @AndroidEntryPoint
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -17,20 +18,26 @@ class VideoPlayerActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Column {
-                VideoPlayerView ()
+                VideoPlayerView()
                 showEventCount(videoViewModel)
             }
         }
-        val index = intent.getIntExtra(ARG_INDEX, 0)
-        videoViewModel.initVideo(index)
-        }
+        val index = intent.extras?.getInt(ARG_INDEX, 0)?:0
+        val data:List<PlayListModel> = intent.extras?.getParcelableArrayList(ARG_DATA)!!
+        videoViewModel.initVideo(data, index)
+    }
 
     companion object {
-        private const val ARG_INDEX = "INDEX"
-        fun launch(context: Context, index: Int) {
+        private const val ARG_INDEX = "index"
+        private const val ARG_DATA = "data"
+        fun launch(context: Context, data: ArrayList<PlayListModel>, index: Int) {
+            val bundle = Bundle().apply {
+                putParcelableArrayList(ARG_DATA, data);
+                putInt(ARG_INDEX, index)
+            }
             context.startActivity(
                 Intent(context, VideoPlayerActivity::class.java)
-                    .putExtra(ARG_INDEX, index)
+                    .putExtras(bundle)
             )
         }
 

@@ -9,13 +9,15 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
+import dazn.com.domain.model.PlayListModel
 import dazn.com.ui.screen.home.ListScreen
 import dazn.com.ui.screen.player.VideoPlayerActivity
+import dazn.com.ui.screen.player.VideoViewModel
 import dazn.com.ui.theme.DaznPlaybackAppTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private val mainViewModel: MainViewModel by viewModels()
+    private val videoViewModel: MainViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -25,7 +27,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     ListScreen { index ->
-                        VideoPlayerActivity.launch(this, index)
+                        VideoPlayerActivity.launch(this,
+                            videoViewModel.videoList.value as ArrayList<PlayListModel>, index)
                     }
                 }
             }

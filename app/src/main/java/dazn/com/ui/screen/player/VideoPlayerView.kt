@@ -32,18 +32,22 @@ import androidx.media3.exoplayer.dash.DashMediaSource
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import dazn.com.R
-import dazn.com.data.model.Video
-import dazn.com.utils.AnalyticsEventLogger
+import dazn.com.analytics.Analytic
+import dazn.com.analytics.Analytic.Event.SWIPE_NEXT
+import dazn.com.analytics.Analytic.Event.SWIPE_PREV
+import dazn.com.analytics.Analytic.Event.VIDEO_PLAY_RESUME_VIDEO
+import dazn.com.analytics.Analytic.Event.VIDEO_PLAY_SCREEN
+import dazn.com.domain.model.PlayListModel
 import dazn.com.utils.toast
 
-private const val PLAYER_SEEK_BACK_INCREMENT = 10 * 1000L // 10 seconds
-private const val PLAYER_SEEK_FORWARD_INCREMENT = 12 * 1000L // 12 seconds
+
+private const val PLAYER_SEEK_BACK_INCREMENT = 5 * 1000L
+private const val PLAYER_SEEK_FORWARD_INCREMENT = 10 * 1000L
 
 @Composable
 @UnstableApi
 @androidx.annotation.OptIn(UnstableApi::class)
 fun VideoPlayerView() {
-
 
     val videoViewModel = hiltViewModel<VideoViewModel>()
     val context = LocalContext.current
@@ -102,7 +106,6 @@ fun VideoPlayerView() {
             bufferedPercentage.value = player.bufferedPercentage
             isPlaying.value = player.isPlaying
             playbackState.value = player.playbackState
-
             when (player.playbackState) {
                 Player.STATE_BUFFERING -> {
                     isBuffering.value = true
@@ -111,7 +114,6 @@ fun VideoPlayerView() {
                     isBuffering.value = false
                 }
                 Player.STATE_ENDED -> {
-                    videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_PLAY_NEXT)
                     playNextVideo(context, videoViewModel, exoPlayer, video, shouldShowControls)
                 }
             }
@@ -126,12 +128,12 @@ fun VideoPlayerView() {
                 direction.value = dragAmount
             }, onDragEnd = {
                 if (direction.value > 0) {
-                    videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_PLAY_PREVIOUS)
+                    videoViewModel.analyticService.trackEvent(SWIPE_PREV)
                     playPreviousVideo(
                         context, videoViewModel, exoPlayer, video, shouldShowControls
                     )
                 } else {
-                    videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_PLAY_NEXT)
+                    videoViewModel.analyticService.trackEvent(SWIPE_NEXT)
                     playNextVideo(
                         context, videoViewModel, exoPlayer, video, shouldShowControls
                     )
@@ -151,7 +153,6 @@ fun VideoPlayerView() {
                 shouldShowControls.value = shouldShowControls.value.not()
             }, factory = {
             PlayerView(context).apply {
-                hideController()
                 useController = false
                 resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                 player = exoPlayer
@@ -170,22 +171,22 @@ fun VideoPlayerView() {
 
             onPlayNext = {
                 videoViewModel.forwardCount.value+=1
-                videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_PLAY_NEXT)
+                val params = hashMapOf(Analytic.Key.PLAY_NEXT to videoViewModel.forwardCount.value)
+                videoViewModel.analyticService.trackEvent(VIDEO_PLAY_SCREEN, params)
                 playNextVideo(context, videoViewModel, exoPlayer, video, shouldShowControls)
             },
             onPlayPrevious = {
                 videoViewModel.backwardCount.value+=1
-                videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_PLAY_PREVIOUS)
+                val params = hashMapOf(Analytic.Key.PREVIOUS to videoViewModel.backwardCount.value)
+                videoViewModel.analyticService.trackEvent(VIDEO_PLAY_SCREEN, params)
                 playPreviousVideo(context, videoViewModel, exoPlayer, video, shouldShowControls)
             },
 
             playbackState = { playbackState.value },
             onReplayClick = {
-                videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_SEEK_REPLAY)
                 exoPlayer.seekBack()
             },
             onForwardClick = {
-                videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_SEEK_FORWARD)
                 exoPlayer.seekForward()
             },
             onPauseToggle = {
@@ -193,21 +194,21 @@ fun VideoPlayerView() {
                     exoPlayer.isPlaying -> {
                         // pause the video
                         videoViewModel.pauseCount.value+=1
-                        videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_PAUSE_VIDEO)
+                        val params = hashMapOf(Analytic.Key.PAUSE_VIDEO to videoViewModel.pauseCount.value)
+                        videoViewModel.analyticService.trackEvent(VIDEO_PLAY_SCREEN, params)
                         exoPlayer.pause()
                     }
                     else -> {
-                        videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_RESUME_VIDEO)
+                        videoViewModel.analyticService.trackEvent(VIDEO_PLAY_RESUME_VIDEO)
                         exoPlayer.play()
                     }
                 }
                 isPlaying.value = isPlaying.value.not()
             },
             totalDuration = { totalDuration.value },
-            currentTime = { currentTime.value },
+            currentTime = { currentTime.value},
             bufferedPercentage = { bufferedPercentage.value },
             onSeekChanged = { timeMs: Float ->
-                videoViewModel.logActionEvent(AnalyticsEventLogger.ACTION_SEEK_VIDEO)
                 exoPlayer.seekTo(timeMs.toLong())
             },
             showNextButton = videoViewModel.isNextVideoAvailable(),
@@ -217,7 +218,7 @@ fun VideoPlayerView() {
             Box(
                 contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Color.Yellow)
             }
         }
 
@@ -225,11 +226,12 @@ fun VideoPlayerView() {
     }
 }
 
+
 fun playNextVideo(
     context: Context,
     videoViewModel: VideoViewModel,
     exoPlayer: ExoPlayer,
-    video: MutableState<Video?>,
+    video: MutableState<PlayListModel?>,
     shouldShowControls: MutableState<Boolean>
 ) {
     shouldShowControls.value = false
@@ -246,7 +248,7 @@ fun playPreviousVideo(
     context: Context,
     videoViewModel: VideoViewModel,
     exoPlayer: ExoPlayer,
-    video: MutableState<Video?>,
+    video: MutableState<PlayListModel?>,
     shouldShowControls: MutableState<Boolean>
 ) {
     shouldShowControls.value = false
@@ -260,25 +262,22 @@ fun playPreviousVideo(
 }
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-fun intiExoplayer(context: Context, video: Video): ExoPlayer {
+fun intiExoplayer(context: Context, video: PlayListModel): ExoPlayer {
     val player = ExoPlayer.Builder(context).apply {
         setSeekBackIncrementMs(PLAYER_SEEK_BACK_INCREMENT)
         setSeekForwardIncrementMs(PLAYER_SEEK_FORWARD_INCREMENT)
     }.build().apply {
         val defaultHttpDataSourceFactory = DefaultHttpDataSource.Factory()
-
         val source = DashMediaSource.Factory(defaultHttpDataSourceFactory)
             .createMediaSource(MediaItem.fromUri(video.uri))
-
         setMediaSource(source)
         prepare()
     }
-
     return player
 }
 
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-fun playAnotherVideo(exoPlayer: ExoPlayer, video: Video?) {
+fun playAnotherVideo(exoPlayer: ExoPlayer, video: PlayListModel?) {
     if (video == null) {
         return
     }
@@ -308,7 +307,7 @@ fun VideoTitle(
     ) {
         Text(
             modifier = modifier.padding(10.dp),
-            text = "${videoIndex + 1} $videoTitle",
+            text = "${videoIndex + 1}. $videoTitle",
             style = MaterialTheme.typography.titleLarge,
             color = Color.Yellow,
             textAlign = TextAlign.Start
@@ -317,7 +316,6 @@ fun VideoTitle(
 
 
 }
-
 
 @Composable
 fun showEventCount(viewModel: VideoViewModel) {

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "783138638249",
+    "project_id": "dazn-demo",
+    "storage_bucket": "dazn-demo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:783138638249:android:2bce2af01090d958d55cb8",
+        "android_client_info": {
+          "package_name": "dazn.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "783138638249-qruksch0gkjrr8sc83p0e1dq8ciaqong.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA9mcglYCc4m2FXCi8e4-f-5y2f6L4Je-4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "783138638249-qruksch0gkjrr8sc83p0e1dq8ciaqong.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
